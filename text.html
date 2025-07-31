@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Gửi tin nhắn đến ESP32</title>
+</head>
+<body>
+  <h2>✉️ Gửi tin nhắn đến Firebase</h2>
+  <form id="form">
+    <input type="text" id="msg" placeholder="Nhập nội dung..." required />
+    <button type="submit">Gửi</button>
+  </form>
+
+  <h3>📝 Tin nhắn vừa gửi:</h3>
+  <p id="latestMsg">Chưa có</p>
+
+  <p id="status"></p>
+
+  <script>
+    const DB_URL = "https://tung-7d5d3-default-rtdb.asia-southeast1.firebasedatabase.app/message.json";
+
+    document.getElementById("form").addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const msg = document.getElementById("msg").value.trim();
+      if (!msg) return;
+
+      const res = await fetch(DB_URL, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(msg)
+      });
+
+      if (res.ok) {
+        document.getElementById("status").innerText = "✅ Gửi thành công!";
+        document.getElementById("latestMsg").innerText = msg;
+        document.getElementById("msg").value = "";
+      } else {
+        document.getElementById("status").innerText = "❌ Gửi thất bại!";
+      }
+    });
+  </script>
+</body>
+</html>

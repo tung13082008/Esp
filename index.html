@@ -1,44 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Gửi tin nhắn đến ESP32</title>
+  <title>Yêu thương 💌</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(120deg, #ffe3ec, #ffe5b4);
+      padding: 30px;
+      text-align: center;
+    }
+    h1 {
+      color: #d6336c;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 60%;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      margin-left: 10px;
+      border: none;
+      border-radius: 10px;
+      background-color: #ff6b81;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #replyBox {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #fff5f7;
+      border-radius: 10px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .fade {
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
 </head>
 <body>
-  <h2>✉️ Gửi tin nhắn đến Firebase</h2>
+  <h1>💬 Chat tình yêu với chồng iu</h1>
   <form id="form">
-    <input type="text" id="msg" placeholder="Nhập nội dung..." required />
+    <input type="text" id="message" placeholder="Nhập lời yêu thương..." required>
     <button type="submit">Gửi</button>
   </form>
 
-  <h3>📝 Tin nhắn vừa gửi:</h3>
-  <p id="latestMsg">Chưa có</p>
-
-  <p id="status"></p>
+  <div id="replyBox">Chưa có phản hồi nào từ ESP32...</div>
 
   <script>
-    const DB_URL = "https://tung-7d5d3-default-rtdb.asia-southeast1.firebasedatabase.app/message.json";
+    const FIREBASE_URL = "https://tung-7d5d3-default-rtdb.asia-southeast1.firebasedatabase.app";
+    let lastReply = "";
 
-    document.getElementById("form").addEventListener("submit", async function (e) {
+    document.getElementById("form").addEventListener("submit", async function(e) {
       e.preventDefault();
-
-      const msg = document.getElementById("msg").value.trim();
-      if (!msg) return;
-
-      const res = await fetch(DB_URL, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(msg)
-      });
-
-      if (res.ok) {
-        document.getElementById("status").innerText = "✅ Gửi thành công!";
-        document.getElementById("latestMsg").innerText = msg;
-        document.getElementById("msg").value = "";
-      } else {
-        document.getElementById("status").innerText = "❌ Gửi thất bại!";
+      const msg = document.getElementById("message").value.trim();
+      if (msg) {
+        await fetch(`${FIREBASE_URL}/message.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(msg)
+        });
+        document.getElementById("message").value = "";
       }
     });
+
+    async function getAnswer() {
+      const res = await fetch(`${FIREBASE_URL}/response.json`);
+      const data = await res.json();
+      if (data && data !== lastReply) {
+        lastReply = data;
+        const replyBox = document.getElementById("replyBox");
+        replyBox.innerText = data;
+        replyBox.classList.add("fade");
+        setTimeout(() => replyBox.classList.remove("fade"), 1000);
+      }
+    }
+
+    setInterval(getAnswer, 2000);
   </script>
 </body>
 </html>

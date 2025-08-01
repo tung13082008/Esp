@@ -30,16 +30,17 @@
       color: #d6336c;
       font-size: 32px;
     }
-    input[type="text"] {
+    input[type="text"], input[type="password"] {
       padding: 12px;
       width: 60%;
       border-radius: 10px;
       border: 1px solid #ccc;
       font-size: 16px;
+      margin-bottom: 10px;
     }
     button {
       padding: 12px 20px;
-      margin-left: 10px;
+      margin: 10px 5px;
       border: none;
       border-radius: 10px;
       background-color: #ff6b81;
@@ -71,11 +72,23 @@
 <body>
   <div class="overlay"></div>
   <div class="container">
-    <h1>💬 Chat tình yêu với chồng iu</h1>
+    <h1>💬 nt vs chồng iu</h1>
+
+    <!-- Form gửi tin nhắn -->
     <form id="form">
-      <input type="text" id="message" placeholder="Nhập lời yêu thương..." required>
+      <input type="text" id="message" placeholder="nhắn ở đây em bé ưi" required>
       <button type="submit">Gửi</button>
     </form>
+
+    <!-- Form nhập WiFi -->
+    <div style="margin-top: 40px;">
+      <h2>📶 Nhập WiFi cho ESP32</h2>
+      <input type="text" id="ssid" placeholder="Tên WiFi (SSID)" required><br>
+      <input type="password" id="pass" placeholder="Mật khẩu WiFi" required><br>
+      <button onclick="saveWiFi()">Lưu WiFi</button>
+    </div>
+
+    <!-- Phản hồi từ ESP32 -->
     <div id="replyBox">Chưa có phản hồi nào từ ESP32...</div>
   </div>
 
@@ -83,6 +96,7 @@
     const FIREBASE_URL = "https://tung-7d5d3-default-rtdb.asia-southeast1.firebasedatabase.app";
     let lastReply = "";
 
+    // Gửi tin nhắn
     document.getElementById("form").addEventListener("submit", async function(e) {
       e.preventDefault();
       const msg = document.getElementById("message").value.trim();
@@ -96,6 +110,31 @@
       }
     });
 
+    // Lưu WiFi vào Firebase
+    async function saveWiFi() {
+      const ssid = document.getElementById("ssid").value.trim();
+      const pass = document.getElementById("pass").value.trim();
+      if (!ssid || !pass) return alert("Vui lòng nhập đầy đủ SSID và Password");
+
+      const body = {
+        ssid: ssid,
+        password: pass
+      };
+
+      try {
+        await fetch(`${FIREBASE_URL}/wifi_config.json`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body)
+        });
+        alert("✅ Đã lưu WiFi cho ESP32!");
+      } catch (err) {
+        console.error("Lỗi lưu WiFi:", err);
+        alert("❌ Lỗi khi lưu WiFi");
+      }
+    }
+
+    // Nhận phản hồi từ ESP32
     async function getAnswer() {
       try {
         const res = await fetch(`${FIREBASE_URL}/response.json`);
